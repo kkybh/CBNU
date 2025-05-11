@@ -1,0 +1,35 @@
+import re
+from collections import Counter
+from datetime import datetime
+
+# 로그 데이터 예시
+log_data = """
+127.0.0.1 - - [10/May/2025:14:23:12 +0000] "GET /index.html HTTP/1.1" 200 1043
+192.168.1.10 - - [10/May/2025:14:23:15 +0000] "POST /login HTTP/1.1" 302 0
+127.0.0.1 - - [10/May/2025:14:24:10 +0000] "GET /home HTTP/1.1" 200 2048
+10.0.0.2 - - [10/May/2025:14:25:22 +0000] "GET /index.html HTTP/1.1" 404 512
+""".strip().split("\n")
+
+# 정규식 패턴
+log_pattern = re.compile(
+    r'(?P<ip>\S+) - - \[(?P<datetime>[^\]]+)\] "(?P<method>\S+) (?P<url>\S+) \S+" (?P<status>\d{3}) (?P<size>\d+)'
+)
+
+# 분석 결과 저장용
+ips = []
+urls = []
+statuses = []
+
+# 로그 파싱
+for line in log_data:
+    match = log_pattern.match(line)
+    if match:
+        data = match.groupdict()
+        ips.append(data['ip'])
+        urls.append(data['url'])
+        statuses.append(data['status'])
+
+# 결과 출력
+print("🔹 IP별 요청 수:", Counter(ips))
+print("🔹 요청된 URL:", Counter(urls))
+print("🔹 응답 상태 코드:", Counter(statuses))
