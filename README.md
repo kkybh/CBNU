@@ -1,0 +1,57 @@
+1. AWS 회원가입 및 로그인
+https://aws.amazon.com 에서 계정을 만들고 로그인합니다.
+
+무료 티어(FREE TIER)를 사용하면 처음 12개월 동안 일정량의 리소스를 무료로 사용할 수 있습니다.
+
+2. EC2 인스턴스 생성 (서버 만들기)
+AWS Management Console에서 EC2 서비스 선택.
+
+"인스턴스 시작" 클릭.
+
+AMI(Amazon Machine Image) 선택:
+
+Ubuntu, Amazon Linux, CentOS, Windows 등 중에서 선택 (보통 Ubuntu 20.04 많이 사용).
+
+인스턴스 유형 선택:
+
+t2.micro 또는 t3.micro는 무료 티어에 해당.
+
+키 페어 생성/선택:
+
+SSH 접속을 위해 .pem 키 파일을 생성하고 저장.
+
+보안 그룹 설정 (방화벽 역할):
+
+포트 22(SSH), 80(HTTP), 443(HTTPS) 등을 허용.
+
+인스턴스 시작.
+
+3. EC2 서버에 SSH로 접속
+bash
+복사
+편집
+chmod 400 your-key.pem
+ssh -i your-key.pem ubuntu@<EC2 퍼블릭 IP>
+4. 서버에 필요한 패키지 설치
+예: 웹 서버 설정 (Nginx 기준)
+
+bash
+복사
+편집
+sudo apt update
+sudo apt install nginx
+sudo systemctl start nginx
+5. 퍼블릭 IP로 웹 접속 테스트
+브라우저에 EC2 퍼블릭 IP 입력 → Nginx welcome page가 보이면 성공
+
+6. (선택) 도메인 연결 및 HTTPS 인증서 설정
+도메인 구매 후 Route 53에서 설정하거나 외부 도메인을 EC2 퍼블릭 IP에 연결.
+
+Let's Encrypt를 사용해 SSL 인증서 설치 가능.
+
+📌 추가 설정 예시
+MySQL 또는 PostgreSQL 설치
+
+Docker 설치 및 컨테이너 실행
+
+Node.js, Python, PHP 등 애플리케이션 서버 구성
