@@ -1,0 +1,60 @@
+AWS 기반 빅데이터 분석을 위한 방법으로는 Amazon Athena와 Amazon QuickSight의 조합이 많이 활용됩니다. 이 두 서비스를 함께 사용하면, S3에 저장된 대용량 데이터를 SQL로 분석하고, 그 결과를 시각화할 수 있습니다.
+
+아래는 Athena와 QuickSight를 활용한 빅데이터 분석 실습 흐름입니다.
+
+✅ 실습 개요
+데이터 준비: Amazon S3에 CSV 또는 Parquet 형식의 데이터 업로드
+
+Athena로 SQL 질의 작성: S3 데이터를 대상으로 쿼리
+
+QuickSight로 시각화: Athena 쿼리 결과를 시각화
+
+1️⃣ 데이터 준비 (Amazon S3)
+S3 버킷 생성
+
+예: my-bigdata-bucket
+
+CSV 파일 업로드
+
+예: s3://my-bigdata-bucket/sales-data/2025-sales.csv
+
+2️⃣ Amazon Athena로 분석
+2-1. 테이블 생성 (Glue Data Catalog 사용)
+sql
+복사
+편집
+CREATE EXTERNAL TABLE IF NOT EXISTS sales_data (
+  date string,
+  region string,
+  product string,
+  quantity int,
+  revenue double
+)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
+WITH SERDEPROPERTIES (
+  'serialization.format' = ',',
+  'field.delim' = ','
+)
+LOCATION 's3://my-bigdata-bucket/sales-data/'
+TBLPROPERTIES ('has_encrypted_data'='false');
+2-2. SQL 쿼리 예시
+sql
+복사
+편집
+-- 월별 매출 합계
+SELECT substring(date, 1, 7) AS month, SUM(revenue) AS total_revenue
+FROM sales_data
+GROUP BY substring(date, 1, 7)
+ORDER BY month;
+3️⃣ Amazon QuickSight로 시각화
+3-1. QuickSight 설정
+QuickSight에 S3, Athena 접근 권한 부여
+
+데이터셋으로 Athena 테이블(sales_data) 선택
+
+3-2. 대시보드 구성
+막대그래프: 월별 매출
+
+파이차트: 제품별 매출 비중
+
+지도 시각화: 지역별 매출(지역 필드가 있는 경우)
