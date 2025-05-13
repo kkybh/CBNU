@@ -1,0 +1,86 @@
+전체 흐름 개요
+센서 선택 및 연결
+예: 온도센서, 습도센서, 가속도계 등
+→ 라즈베리파이, 아두이노 등의 디바이스에 연결
+
+센서 데이터 수집 코드 작성
+Python, C, Node.js 등으로 센서 데이터를 읽는 코드 작성
+
+AWS IoT Core 설정
+
+사물(Thing) 생성
+
+인증서 및 정책 생성
+
+엔드포인트 확보
+
+디바이스에서 AWS IoT로 데이터 전송
+
+MQTT 프로토콜 사용
+
+인증서 기반 TLS 연결
+
+MQTT 토픽으로 데이터 발행(Publish)
+
+AWS 서비스와 연동
+
+AWS Lambda, DynamoDB, S3, SNS 등과 연결하여 후처리
+
+💡 예시: Raspberry Pi + DHT11 온습도 센서 + AWS IoT Core
+1. 센서 연결
+DHT11 → GPIO 핀에 연결 (ex: GPIO4)
+
+2. Python으로 센서값 읽기 (라이브러리 사용)
+bash
+복사
+편집
+pip install Adafruit_DHT AWSIoTPythonSDK
+python
+복사
+편집
+import Adafruit_DHT
+from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
+import json
+import time
+
+# 센서 설정
+DHT_SENSOR = Adafruit_DHT.DHT11
+DHT_PIN = 4
+
+# AWS IoT 설정
+client = AWSIoTMQTTClient("MyRaspberryPi")
+client.configureEndpoint("YOUR_ENDPOINT_HERE.iot.region.amazonaws.com", 8883)
+client.configureCredentials("root-CA.crt", "private.key", "certificate.pem.crt")
+client.connect()
+
+# 데이터 전송 루프
+while True:
+    humidity, temperature = Adafruit_DHT.read(DHT_SENSOR, DHT_PIN)
+    if humidity is not None and temperature is not None:
+        payload = {
+            "temperature": temperature,
+            "humidity": humidity
+        }
+        client.publish("sensor/data", json.dumps(payload), 1)
+    time.sleep(5)
+3. AWS IoT Core 설정
+Thing 생성 → 디바이스 이름 지정
+
+Certificate 생성 → 연결용 인증서, 키 생성
+
+Policy 설정 → MQTT publish 권한 포함
+
+엔드포인트 확인 → 위 코드에 입력
+
+📦 센서별 연결 힌트
+센서 종류	연결 방식	데이터 읽기 언어
+DHT11/22	GPIO	Python, C
+MPU6050	I2C	Python, C
+Light Sensor	아날로그 (ADC 필요)	Arduino, Pi + ADC
+GPS (NMEA)	UART (Serial)	Python, C
+
+🔐 보안 주의사항
+인증서 분실 방지
+MQTT over TLS만 사용 (Port 8883)
+최소 권한의 정책 적용
+
