@@ -1,0 +1,268 @@
+네트워크분석(Network Analysis)은 그래프분석의 한 분야로, 사회, 생물, 컴퓨터 네트워크 등 다양한 시스템에서 **노드(개체)**와 **엣지(관계)**를 분석하여 그 구조와 특성을 이해하는 기법
+
+네트워크분석 주요 개념
+노드(Node): 네트워크 내 개별 개체 (예: 사람, 서버, 단백질)
+
+엣지(Edge): 노드 간 관계 (예: 친구 관계, 데이터 전송)
+
+무방향/방향 그래프: 관계가 쌍방향인지 단방향인지
+
+가중치: 관계의 강도나 빈도 등 수치
+
+네트워크분석 주요 지표
+지표명	설명
+Degree (차수)	각 노드에 연결된 엣지 수
+Density (밀도)	실제 연결된 엣지 수 / 최대 연결 가능 엣지 수
+Path Length (최단 경로 길이)	두 노드 간 최단 경로의 평균 길이
+Clustering Coefficient (군집 계수)	노드 주변 이웃들이 서로 연결된 정도
+Centrality (중심성)	중요 노드 측정 (Degree, Betweenness, Closeness 등)
+Modularity (모듈성)	네트워크 내 커뮤니티 구조 정도
+
+네트워크분석 활용 분야
+소셜 네트워크: 영향력 있는 사람 찾기, 커뮤니티 탐지
+
+생물학: 단백질 상호작용 네트워크 분석
+
+컴퓨터 네트워크: 트래픽 분석, 장애 탐지
+
+교통 네트워크: 최적 경로 및 병목 구간 분석
+
+간단한 Python NetworkX 예제
+python
+복사
+편집
+import networkx as nx
+import matplotlib.pyplot as plt
+
+G = nx.karate_club_graph()  # 유명한 예제 네트워크
+
+# 중심성 계산
+degree_centrality = nx.degree_centrality(G)
+betweenness_centrality = nx.betweenness_centrality(G)
+
+print("Degree Centrality:", degree_centrality)
+print("Betweenness Centrality:", betweenness_centrality)
+
+# 커뮤니티 탐지 (간단히 Label Propagation)
+communities = nx.algorithms.community.label_propagation_communities(G)
+for i, community in enumerate(communities):
+    print(f"Community {i+1}: {list(community)}")
+
+# 시각화
+nx.draw(G, with_labels=True, node_color='lightblue')
+plt.show()
+
+1. 복잡한 네트워크 모델과 분석 기법
+주요 네트워크 모델
+무작위 그래프(Random Graph)
+
+Erdős–Rényi 모델: 노드 쌍 간 일정 확률로 엣지 연결
+
+소규모 세계 네트워크(Small-world Network)
+
+Watts-Strogatz 모델: 높은 군집도와 짧은 평균 경로 길이
+
+스케일-프리 네트워크(Scale-free Network)
+
+Barabási-Albert 모델: 일부 노드에 연결 집중, 거대한 허브 형성
+
+계층적 네트워크(Hierarchical Network)
+
+모듈 단위로 반복되는 구조, 실제 사회/생물 네트워크에 가까움
+
+복잡 네트워크 분석 기법
+중심성 분석
+
+Degree, Betweenness, Closeness, Eigenvector centrality
+
+커뮤니티 탐지
+
+Louvain, Infomap, Label Propagation
+
+모듈성(Modularity)
+
+네트워크를 커뮤니티로 나누는 정도 평가
+
+네트워크 동역학(Dynamics)
+
+정보 확산, 전염병 모델, 네트워크 진화 시뮬레이션
+
+네트워크 내 상관관계 및 구조적 균형
+
+삼각관계, 균형이론
+
+2. 대규모 네트워크 처리법
+기술 및 도구
+분산 그래프 처리 시스템
+
+Apache Spark GraphX, Giraph, GraphFrames
+
+그래프 데이터베이스
+
+Neo4j, JanusGraph, Amazon Neptune
+
+데이터 샘플링 및 축소 기법
+
+노드/엣지 샘플링, 그래프 요약
+
+병렬 알고리즘
+
+멀티스레드 및 GPU 병렬 처리 (DGL, PyTorch Geometric)
+
+스트리밍 그래프 처리
+
+실시간 데이터 업데이트와 분석
+
+실무 팁
+그래프를 희소 행렬 형식으로 저장(CSR, CSC)
+
+주요 노드/엣지 중심의 부분 그래프 분석
+
+인메모리와 디스크 기반 처리 균형 맞추기
+
+3. 네트워크 시각화 고급 기법
+도구
+Gephi
+
+대규모 네트워크 시각화, 다양한 레이아웃 제공
+
+Graph-tool
+
+빠르고 강력한 파이썬 시각화 및 분석 라이브러리
+
+Plotly, Bokeh, D3.js
+
+웹 기반 인터랙티브 시각화
+
+시각화 기법
+Force-directed Layout
+
+노드 간 힘 모델로 배치 (예: Fruchterman-Reingold)
+
+계층적 레이아웃
+
+트리 구조 표현에 적합
+
+클러스터 강조
+
+커뮤니티별 색상, 그룹화 표시
+
+인터랙티브 시각화
+
+줌, 필터링, 클릭 이벤트 지원으로 탐색 용이
+
+애니메이션
+
+네트워크 변화, 시간에 따른 동적 시각화
+
+1. 분산 그래프 처리 예제 (PySpark + GraphFrames)
+python
+복사
+편집
+from pyspark.sql import SparkSession
+from graphframes import GraphFrame
+
+# Spark 세션 생성
+spark = SparkSession.builder \
+    .appName("DistributedGraphExample") \
+    .getOrCreate()
+
+# 정점 데이터프레임 생성
+vertices = spark.createDataFrame([
+    ("1", "Alice"),
+    ("2", "Bob"),
+    ("3", "Charlie"),
+    ("4", "David"),
+    ("5", "Esther"),
+], ["id", "name"])
+
+# 엣지 데이터프레임 생성
+edges = spark.createDataFrame([
+    ("1", "2", "friend"),
+    ("2", "3", "follow"),
+    ("3", "4", "follow"),
+    ("4", "5", "friend"),
+    ("5", "1", "follow"),
+], ["src", "dst", "relationship"])
+
+# GraphFrame 생성
+g = GraphFrame(vertices, edges)
+
+# Label Propagation 커뮤니티 탐지 (5회 반복)
+communities = g.labelPropagation(maxIter=5)
+communities.select("id", "label").show()
+
+spark.stop()
+클러스터 환경에서 대규모 데이터 처리 가능
+
+labelPropagation 으로 커뮤니티를 빠르게 탐지
+
+2. 네트워크 시각화 예제 (NetworkX + Plotly)
+python
+복사
+편집
+import networkx as nx
+import plotly.graph_objects as go
+
+# 그래프 생성
+G = nx.karate_club_graph()
+
+pos = nx.spring_layout(G)  # Force-directed layout
+
+# 노드 좌표
+node_x = [pos[n][0] for n in G.nodes()]
+node_y = [pos[n][1] for n in G.nodes()]
+
+# 엣지 좌표
+edge_x = []
+edge_y = []
+for edge in G.edges():
+    x0, y0 = pos[edge[0]]
+    x1, y1 = pos[edge[1]]
+    edge_x.extend([x0, x1, None])
+    edge_y.extend([y0, y1, None])
+
+edge_trace = go.Scatter(
+    x=edge_x, y=edge_y,
+    line=dict(width=0.5, color='#888'),
+    hoverinfo='none',
+    mode='lines')
+
+node_trace = go.Scatter(
+    x=node_x, y=node_y,
+    mode='markers+text',
+    text=[str(n) for n in G.nodes()],
+    textposition="top center",
+    hoverinfo='text',
+    marker=dict(
+        showscale=True,
+        colorscale='YlGnBu',
+        reversescale=True,
+        color=[G.degree[n] for n in G.nodes()],
+        size=10,
+        colorbar=dict(
+            thickness=15,
+            title='Node Degree',
+            xanchor='left',
+            titleside='right'
+        ),
+        line_width=2))
+
+fig = go.Figure(data=[edge_trace, node_trace],
+             layout=go.Layout(
+                title='Karate Club Network Visualization',
+                showlegend=False,
+                hovermode='closest',
+                margin=dict(b=20,l=5,r=5,t=40),
+                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
+                )
+
+fig.show()
+Plotly를 사용한 인터랙티브 웹 기반 시각화
+
+노드 크기 및 색상은 차수(Degree)로 표현
+
+줌, 툴팁 등 사용자 인터랙션 지원
+
+
