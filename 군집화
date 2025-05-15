@@ -1,0 +1,202 @@
+군집화(Clustering)는 비슷한 특성을 가진 데이터들을 그룹으로 묶는 비지도 학습 기법이에요. 주로 데이터 탐색, 이상 탐지, 고객 세분화 등에 활용되죠.
+
+🔍 군집화 기본 개념
+목적: 레이블 없이 데이터 내재 구조를 발견
+
+입력: 특징 벡터(특징 공간)
+
+출력: 군집(cluster) 레이블
+
+주요 군집화 알고리즘
+알고리즘	특징	사용 사례
+K-평균 (K-Means)	중심 기반, 간단하고 빠름, 군집 개수 필요	고객 세분화, 문서 분류 등
+계층적 군집화 (Hierarchical)	트리 형태 군집 생성, 군집 수 미정 가능	유전자 분류, 문서 집합 분석
+DBSCAN	밀도 기반, 노이즈(이상치) 처리 가능	이상 탐지, 지리 데이터 분석
+Mean Shift	밀도 봉우리 탐색, 군집 수 자동 결정	이미지 처리, 객체 추적
+
+간단한 K-Means 예제 (Python)
+python
+복사
+편집
+from sklearn.cluster import KMeans
+import numpy as np
+
+# 예시 데이터: 2차원 좌표 10개
+X = np.array([[1, 2], [1, 4], [1, 0],
+              [4, 2], [4, 4], [4, 0],
+              [10, 2], [10, 4], [10, 0]])
+
+# 군집 개수 3개로 KMeans 적용
+kmeans = KMeans(n_clusters=3, random_state=42)
+kmeans.fit(X)
+
+print("클러스터 레이블:", kmeans.labels_)
+print("클러스터 중심점:", kmeans.cluster_centers_)
+군집화 활용 예
+고객 세분화: 마케팅 타겟 그룹 분류
+
+이상치 탐지: 밀도 기반 군집 외부 데이터 이상 감지
+
+이미지 처리: 유사 색상/패턴 그룹화
+
+문서 군집화: 주제별 문서 그룹 생성
+
+예시는 유명한 Iris 꽃 데이터셋을 이용해 K-Means 군집화를 수행하는 코드
+
+1. 라이브러리 불러오기 및 데이터 준비
+python
+복사
+편집
+from sklearn.datasets import load_iris
+from sklearn.cluster import KMeans
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Iris 데이터셋 로드
+iris = load_iris()
+X = iris.data  # 꽃받침, 꽃잎 길이/너비 등 4개 특징
+df = pd.DataFrame(X, columns=iris.feature_names)
+2. K-Means 군집화 수행
+python
+복사
+편집
+kmeans = KMeans(n_clusters=3, random_state=42)
+kmeans.fit(X)
+df['cluster'] = kmeans.labels_
+3. 군집 결과 시각화 (주성분분석으로 2차원 축소)
+python
+복사
+편집
+from sklearn.decomposition import PCA
+
+pca = PCA(n_components=2)
+components = pca.fit_transform(X)
+df['pca1'] = components[:, 0]
+df['pca2'] = components[:, 1]
+
+plt.figure(figsize=(8,6))
+sns.scatterplot(data=df, x='pca1', y='pca2', hue='cluster', palette='Set1', s=100)
+plt.title('Iris Dataset Clustering (KMeans, k=3)')
+plt.show()
+4. 군집 품질 평가 (실제 라벨과 비교)
+python
+복사
+편집
+from sklearn.metrics import adjusted_rand_score
+
+labels_true = iris.target
+labels_pred = kmeans.labels_
+ari = adjusted_rand_score(labels_true, labels_pred)
+print(f'Adjusted Rand Index: {ari:.3f}')  # 1에 가까울수록 군집과 실제 라벨 유사
+요약
+Iris 데이터의 4차원 특징을 2차원으로 축소해 시각화
+
+KMeans가 3개의 군집으로 분류함
+
+ARI 지표로 군집 정확도 평가
+
+실제 고객 데이터와 이미지 데이터를 각각 군집화하는 방법을 간단히 설명
+1. 고객 데이터 군집화
+데이터 특징
+고객별 구매 이력, 나이, 지역, 소비 패턴 등 여러 피처 존재
+
+대개 수치형+범주형 데이터 혼합
+
+전처리 및 특징
+범주형 변수 → 원-핫 인코딩(One-Hot Encoding)
+
+수치형 변수 → 정규화 (MinMaxScaler, StandardScaler)
+
+결측치 처리, 이상치 제거 필수
+
+군집화 알고리즘 추천
+K-Means: 빠르고 직관적, 수치형 데이터에 적합
+
+GMM (Gaussian Mixture Model): 군집 경계가 겹칠 때 활용
+
+DBSCAN: 이상치(노이즈) 다수인 경우 강점
+
+예시 코드 (K-Means)
+python
+복사
+편집
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+
+# 고객 데이터 불러오기
+df = pd.read_csv('customer_data.csv')
+
+# 예: 'gender' 범주형 -> 원-핫 인코딩
+df = pd.get_dummies(df, columns=['gender'])
+
+# 수치형 피처 선택 및 정규화
+features = ['age', 'annual_income', 'spending_score']
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(df[features])
+
+# KMeans 군집화
+kmeans = KMeans(n_clusters=4, random_state=42)
+kmeans.fit(X_scaled)
+
+df['cluster'] = kmeans.labels_
+2. 이미지 데이터 군집화
+데이터 특징
+이미지 자체는 픽셀값 다차원 배열(고차원)
+
+직접 군집화 시 계산량 많고 성능 저하
+
+접근법
+특징 추출: CNN 같은 사전 학습된 모델을 활용해 이미지 특징 벡터(임베딩) 추출
+
+차원 축소: PCA, t-SNE 등으로 차원 축소 가능
+
+군집화: K-Means, DBSCAN 등 적용
+
+예시: 이미지 특징 추출 후 K-Means
+python
+복사
+편집
+import numpy as np
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from tensorflow.keras.applications.vgg16 import preprocess_input
+from sklearn.cluster import KMeans
+import os
+
+# 사전학습된 VGG16 모델 (FC층 제외, 특징 추출용)
+model = VGG16(weights='imagenet', include_top=False, pooling='avg')
+
+def extract_features(image_path):
+    img = load_img(image_path, target_size=(224, 224))
+    x = img_to_array(img)
+    x = np.expand_dims(x, axis=0)
+    x = preprocess_input(x)
+    features = model.predict(x)
+    return features.flatten()
+
+# 이미지 폴더 내 모든 이미지 특징 추출
+image_dir = 'images/'
+features_list = []
+image_names = []
+
+for fname in os.listdir(image_dir):
+    if fname.endswith('.jpg'):
+        fpath = os.path.join(image_dir, fname)
+        features = extract_features(fpath)
+        features_list.append(features)
+        image_names.append(fname)
+
+features_array = np.array(features_list)
+
+# KMeans 군집화
+kmeans = KMeans(n_clusters=5, random_state=42)
+kmeans.fit(features_array)
+labels = kmeans.labels_
+
+# 결과 출력
+for name, label in zip(image_names, labels):
+    print(f'{name}: cluster {label}')
+
+    
