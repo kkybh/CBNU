@@ -1,0 +1,258 @@
+스트림 데이터 분석(Streaming Data Analysis)은 실시간으로 계속해서 생성되는 데이터를 즉시 처리하고 분석하는 기술입니다. 산업 현장 센서 데이터, 금융 거래, 소셜 미디어, 로그 데이터 등에서 많이 활용되죠.
+
+1. 스트림 데이터 분석 특징
+연속적 데이터 흐름: 데이터가 끊임없이 들어옴
+
+저지연 처리: 데이터를 모아서 한꺼번에 처리하는 배치(batch)와 달리 실시간 처리
+
+빠른 의사결정 지원: 이상 탐지, 실시간 모니터링 등
+
+대량 데이터: 고속으로 많은 데이터 처리 필요
+
+2. 주요 기술/플랫폼
+플랫폼	특징
+Apache Kafka	분산 메시징 시스템, 데이터 스트림 버퍼 역할
+Apache Flink	스트림 및 배치 모두 처리 가능한 분산 처리 플랫폼
+Apache Spark Streaming	Spark 기반 실시간 스트림 처리
+Apache Storm	실시간 분산 처리 시스템
+AWS Kinesis	클라우드 기반 스트림 데이터 처리 서비스
+
+3. 간단한 Python Apache Spark Structured Streaming 예제
+python
+복사
+편집
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import expr
+
+spark = SparkSession.builder.appName("StructuredStreamingExample").getOrCreate()
+
+# 예: 소켓에서 실시간 데이터 읽기 (로컬 테스트용)
+lines = spark.readStream.format("socket") \
+    .option("host", "localhost") \
+    .option("port", 9999) \
+    .load()
+
+# 간단하게 각 줄에 단어 수 세기
+words = lines.select(expr("explode(split(value, ' ')) as word"))
+wordCounts = words.groupBy("word").count()
+
+# 콘솔 출력 스트림 시작
+query = wordCounts.writeStream.outputMode("complete").format("console").start()
+
+query.awaitTermination()
+nc -lk 9999 같은 터미널 명령으로 테스트 가능
+
+단어별 누적 개수를 실시간 출력
+
+4. 스트림 데이터 분석 워크플로우
+데이터 수집: 센서, 로그, 사용자 이벤트 등
+
+데이터 수집 플랫폼: Kafka 같은 메시지 큐
+
+실시간 처리: Flink, Spark Streaming 등에서 처리 및 변환
+
+결과 저장 및 알림: 데이터베이스, 대시보드, 알림 시스템
+
+실시간 분석 및 피드백
+
+IoT 센서 데이터 실시간 처리 시나리오를 단계별로 구성해볼게요. 실제 산업 현장에서 많이 쓰이는 아키텍처 예시입니다.
+
+IoT 센서 데이터 실시간 처리 시나리오
+1. 데이터 수집 (Edge Layer)
+수많은 IoT 센서가 온도, 습도, 진동, 위치 등 다양한 데이터를 실시간으로 생성
+
+센서 데이터는 MQTT, CoAP 같은 경량 프로토콜로 게이트웨이 혹은 엣지 서버로 전송
+
+2. 데이터 중계 및 버퍼링 (Messaging Layer)
+엣지 서버에서 받은 센서 데이터를 Apache Kafka 같은 분산 메시징 시스템에 푸시
+
+Kafka는 대용량, 고속 데이터 스트림 버퍼 역할 수행
+
+데이터 유실 방지 및 확장성 제공
+
+3. 실시간 데이터 처리 (Processing Layer)
+Apache Flink, Spark Structured Streaming, Apache Storm 같은 실시간 스트림 처리 플랫폼이 Kafka 토픽에서 데이터 읽기
+
+데이터 정제(Cleaning), 변환(Transformation), 집계(Aggregation) 수행
+
+이상 탐지(Threshold 기반 또는 ML 모델 적용), 이벤트 생성
+
+4. 저장 및 분석 (Storage & Analytics Layer)
+실시간 처리 결과를 NoSQL DB (Cassandra, HBase) 또는 시계열 DB (InfluxDB, TimescaleDB)에 저장
+
+대시보드 시스템 (Grafana, Kibana)으로 시각화 및 모니터링 제공
+
+5. 알림 및 제어 (Action Layer)
+이상 상황 발생 시 알림 시스템 (메일, SMS, Slack) 연동
+
+자동 제어 시스템과 연계해 냉각 장치 가동, 경보 울림 등 실시간 대응
+
+간단한 기술 흐름 예시
+plaintext
+복사
+편집
+[IoT Sensor] --> (MQTT) --> [Edge Gateway] --> (Kafka) --> [Spark Streaming / Flink] --> [NoSQL DB / Dashboard]
+                                                        |
+                                                        --> [Alert System / Control System]
+참고할 수 있는 간단한 Spark Streaming 예제 코드 (Kafka 연동)
+python
+복사
+편집
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import from_json, col
+from pyspark.sql.types import StructType, StructField, StringType, DoubleType, TimestampType
+
+spark = SparkSession.builder.appName("IoTStreaming").getOrCreate()
+
+# Kafka에서 데이터 읽기
+df = spark.readStream.format("kafka") \
+    .option("kafka.bootstrap.servers", "broker1:9092,broker2:9092") \
+    .option("subscribe", "iot-sensor-data") \
+    .load()
+
+# JSON 스키마 정의
+schema = StructType([
+    StructField("sensor_id", StringType()),
+    StructField("timestamp", TimestampType()),
+    StructField("temperature", DoubleType()),
+    StructField("humidity", DoubleType())
+])
+
+# JSON 파싱
+parsed = df.select(from_json(col("value").cast("string"), schema).alias("data")).select("data.*")
+
+# 이상 온도 탐지 예: 100도 이상 알림
+alerts = parsed.filter(col("temperature") > 100)
+
+# 콘솔 출력 (테스트용)
+query = alerts.writeStream.outputMode("append").format("console").start()
+query.awaitTermination()
+
+이상 탐지(Anomaly Detection)는 IoT 센서 데이터나 실시간 스트림에서 정상 패턴과 다른 이상 상황을 자동으로 찾아내는 중요한 기술입니다. 다양한 방법이 있는데, 실시간 스트림 환경에 적합한 대표적인 이상 탐지 모델과 적용법을 설명할게요.
+
+1. 이상 탐지 기법 분류
+종류	특징 및 예시
+통계 기반	평균, 표준편차 기반 임계값 이상치 탐지
+거리 기반	KNN, LOF(Local Outlier Factor) 등 밀도기반 이상치 탐지
+기계학습 기반	지도학습(SVM, Random Forest), 비지도학습(Autoencoder 등)
+딥러닝 기반 시계열 이상 탐지	LSTM-Autoencoder, CNN, Transformer 등 시계열 특화 모델
+
+2. 간단한 통계 기반 이상 탐지 예시 (Spark Streaming 내 적용)
+python
+복사
+편집
+from pyspark.sql import functions as F
+
+# 센서 데이터 평균과 표준편차 계산 (예: 배치 또는 슬라이딩 윈도우)
+stats = parsed.groupBy("sensor_id") \
+    .agg(F.mean("temperature").alias("mean_temp"),
+         F.stddev("temperature").alias("std_temp"))
+
+# 이상 탐지 조건: 현재 값이 평균에서 3*표준편차 이상 벗어날 때
+joined = parsed.join(stats, "sensor_id")
+anomalies = joined.filter(
+    (F.abs(joined.temperature - joined.mean_temp) > 3 * joined.std_temp)
+)
+
+anomalies.writeStream.format("console").start().awaitTermination()
+3. LSTM Autoencoder 기반 이상 탐지 개념
+정상 시계열 데이터 학습: LSTM Autoencoder가 정상 패턴을 압축하고 재구성(reconstruction)
+
+재구성 오차 계산: 재구성 값과 실제 값 차이(error)가 클 경우 이상 판단
+
+임계값 설정: 재구성 오차 분포를 분석해 임계값 설정
+
+4. LSTM Autoencoder 간단 구현 흐름 (TensorFlow/Keras 예시)
+python
+복사
+편집
+import numpy as np
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, LSTM, RepeatVector
+
+timesteps = 10
+features = 1
+
+# 입력 정의
+inputs = Input(shape=(timesteps, features))
+encoded = LSTM(32, activation='relu')(inputs)
+decoded = RepeatVector(timesteps)(encoded)
+decoded = LSTM(32, activation='relu', return_sequences=True)(decoded)
+
+autoencoder = Model(inputs, decoded)
+autoencoder.compile(optimizer='adam', loss='mse')
+
+# 정상 데이터 (X_train)로 학습
+autoencoder.fit(X_train, X_train, epochs=20, batch_size=64)
+
+# 재구성 오차 기반 이상 탐지
+X_pred = autoencoder.predict(X_test)
+mse = np.mean(np.power(X_test - X_pred, 2), axis=(1,2))
+threshold = np.percentile(mse, 95)  # 95% 임계값 설정
+anomalies = mse > threshold
+5. 실시간 적용 시 고려사항
+모델 경량화 및 실시간 추론 가능해야 함
+
+임계값 동적 조정 가능 (Adaptive Thresholding)
+
+데이터 드리프트(시간에 따른 데이터 변화) 대응 필요
+
+스트림 처리 플랫폼과 통합 (예: TensorFlow Serving + Spark Streaming)
+실제 IoT 데이터셋(예: 온도, 습도 센서 데이터)을 활용해 이상 탐지를 하는 간단한 예제를 보여드릴게요. 여기서는 Python, Pandas, Scikit-learn을 사용해 통계 기반 이상 탐지와 Isolation Forest(비지도 학습) 모델을 적용해봅니다.
+
+1. IoT 데이터셋 예시 (CSV 가정)
+csv
+복사
+편집
+timestamp,sensor_id,temperature,humidity
+2025-01-01 00:00:00,S1,22.5,45
+2025-01-01 00:01:00,S1,22.7,44
+2025-01-01 00:02:00,S1,35.0,70  # 이상치 온도
+...
+2. 이상 탐지 코드 예제
+python
+복사
+편집
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import IsolationForest
+import matplotlib.pyplot as plt
+
+# 1) 데이터 로드
+df = pd.read_csv('iot_sensor_data.csv', parse_dates=['timestamp'])
+
+# 2) 데이터 전처리 (센서별 데이터 선택)
+sensor_id = 'S1'
+data = df[df['sensor_id'] == sensor_id].copy()
+data = data.sort_values('timestamp')
+
+# 3) 온도와 습도 기준 이상치 탐지: Isolation Forest 모델 사용
+features = ['temperature', 'humidity']
+X = data[features].values
+
+model = IsolationForest(contamination=0.05, random_state=42)
+data['anomaly'] = model.fit_predict(X)
+
+# -1: 이상치, 1: 정상치
+anomalies = data[data['anomaly'] == -1]
+
+# 4) 시각화
+plt.figure(figsize=(12,6))
+plt.plot(data['timestamp'], data['temperature'], label='Temperature')
+plt.scatter(anomalies['timestamp'], anomalies['temperature'], color='red', label='Anomaly')
+plt.xlabel('Time')
+plt.ylabel('Temperature')
+plt.title(f'Sensor {sensor_id} Temperature Anomaly Detection')
+plt.legend()
+plt.show()
+3. 설명
+Isolation Forest는 고차원 데이터에 강건한 비지도 이상 탐지 기법
+
+contamination 파라미터로 예상 이상치 비율 지정
+
+시계열 데이터지만, 이 예시는 피처 기반 이상 탐지임
+
+필요하면 시계열 특화 모델(LSTM Autoencoder)도 적용 가능
+
+
+
