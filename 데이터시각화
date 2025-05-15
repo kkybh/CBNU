@@ -1,0 +1,254 @@
+데이터 시각화는 이상 탐지 결과를 이해하고, 센서 데이터의 패턴이나 이상치를 한눈에 파악할 수 있게 해줘서 매우 중요해요. 위에서 다룬 IoT 센서 이상 탐지 결과를 좀 더 다양한 방식으로 시각화하는 방법을 몇 가지 소개할게요.
+
+1. 시계열 데이터 + 이상치 표시 (Matplotlib)
+python
+복사
+편집
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(14,6))
+plt.plot(data['timestamp'], data['temperature'], label='Temperature')
+plt.scatter(anomalies['timestamp'], anomalies['temperature'], color='red', label='Anomaly', marker='x')
+plt.xlabel('Time')
+plt.ylabel('Temperature (°C)')
+plt.title('Temperature Time Series with Anomalies')
+plt.legend()
+plt.show()
+이상치 지점을 빨간색 X 표시로 강조
+
+시간에 따른 변화와 이상 발생 시점 확인 가능
+
+2. 다변량 시각화 (온도 vs 습도 + 이상치 구분)
+python
+복사
+편집
+plt.figure(figsize=(8,6))
+plt.scatter(data['temperature'], data['humidity'], label='Normal')
+plt.scatter(anomalies['temperature'], anomalies['humidity'], color='red', label='Anomaly')
+plt.xlabel('Temperature (°C)')
+plt.ylabel('Humidity (%)')
+plt.title('Temperature vs Humidity with Anomalies')
+plt.legend()
+plt.show()
+정상 데이터와 이상 데이터를 온도-습도 평면에 구분해서 보여줌
+
+센서 상태 간 상관관계와 이상치 분포를 이해하기 쉬움
+
+3. Plotly를 활용한 인터랙티브 시각화
+python
+복사
+편집
+import plotly.express as px
+
+data['status'] = data['anomaly'].apply(lambda x: 'Anomaly' if x == -1 else 'Normal')
+
+fig = px.scatter(data, x='timestamp', y='temperature', color='status',
+                 title='Temperature Time Series with Anomalies',
+                 labels={'temperature': 'Temperature (°C)', 'timestamp': 'Time'})
+
+fig.show()
+마우스 오버, 줌, 팬 등의 인터랙션 가능
+
+웹 대시보드에 쉽게 통합 가능
+
+실시간 스트림 데이터 시각화 방법
+
+실시간 스트림 데이터 시각화는 변화하는 데이터를 지연 없이 보여줘야 해서 보통 대시보드 툴이나 웹소켓 기반 인터랙티브 라이브러리를 활용합니다. 대표적 방법 몇 가지와 간단 예시를 소개할게요.
+
+1. Grafana + InfluxDB / Prometheus
+설명:
+시계열 DB(InflexDB, Prometheus 등)에 실시간 스트림 데이터를 저장하고, Grafana에서 쿼리해 시각화
+
+특징:
+
+다양한 시각화 위젯 (라인차트, 바차트, 히트맵 등)
+
+알림(Alerts) 설정 가능
+
+대시보드 공유, 사용자 권한 관리 지원
+
+2. Plotly Dash / Streamlit 기반 웹 대시보드
+설명:
+Python 기반으로 실시간 웹 대시보드 개발 가능
+
+특징:
+
+Plotly의 인터랙티브 그래프
+
+Streamlit은 간단한 코드로 빠른 대시보드 제작
+
+간단 예시 (Streamlit + 웹소켓 데이터 시뮬레이션)
+
+python
+복사
+편집
+import streamlit as st
+import numpy as np
+import pandas as pd
+import time
+
+st.title("실시간 스트림 데이터 시각화")
+
+chart = st.line_chart()
+data = pd.DataFrame({'value': []})
+
+for i in range(100):
+    new_data = pd.DataFrame({'value': [np.random.randn()]}, index=[pd.Timestamp.now()])
+    data = pd.concat([data, new_data])
+    chart.add_rows(new_data)
+    time.sleep(0.1)
+3. WebSocket + JavaScript 라이브러리 (D3.js, Chart.js, ECharts)
+설명:
+서버에서 WebSocket으로 클라이언트에 실시간 데이터 푸시 → 클라이언트가 D3.js, Chart.js 등으로 렌더링
+
+특징:
+
+완전 커스터마이징 가능
+
+대용량 데이터 렌더링 시 최적화 필요
+
+간단 흐름:
+
+서버: Kafka→Spark Streaming→WebSocket 서버
+
+클라이언트: 웹소켓 연결 → 차트 업데이트
+
+4. Python + Bokeh 서버
+특징:
+
+Python 환경에서 인터랙티브 웹 시각화 서버 구축 가능
+
+실시간 데이터 스트림 반영 가능
+
+1. 환경 준비
+Python 라이브러리 설치
+
+bash
+복사
+편집
+pip install kafka-python websockets asyncio
+Kafka 클러스터(로컬 또는 원격) 준비 및 토픽 생성 (iot-sensor-data 등)
+
+2. Kafka Consumer + WebSocket 서버 (Python)
+python
+복사
+편집
+import asyncio
+import json
+from kafka import KafkaConsumer
+import websockets
+
+KAFKA_TOPIC = 'iot-sensor-data'
+KAFKA_BOOTSTRAP_SERVERS = ['localhost:9092']
+WS_PORT = 6789
+
+# Kafka 컨슈머 설정
+consumer = KafkaConsumer(
+    KAFKA_TOPIC,
+    bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
+    auto_offset_reset='latest',
+    enable_auto_commit=True,
+    group_id='streaming-group',
+    value_deserializer=lambda x: x.decode('utf-8')
+)
+
+connected = set()
+
+async def consume_kafka():
+    for message in consumer:
+        data = message.value
+        # 연결된 모든 클라이언트에 데이터 전송
+        if connected:
+            await asyncio.wait([ws.send(data) for ws in connected])
+
+async def ws_handler(websocket, path):
+    # 클라이언트 연결 등록
+    connected.add(websocket)
+    try:
+        async for message in websocket:
+            # 클라이언트에서 메시지 수신 시 처리 (없어도 됨)
+            pass
+    finally:
+        connected.remove(websocket)
+
+async def main():
+    server = await websockets.serve(ws_handler, 'localhost', WS_PORT)
+    kafka_task = asyncio.create_task(consume_kafka())
+    await asyncio.gather(server.wait_closed(), kafka_task)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+3. 클라이언트 HTML + JavaScript 예제 (웹소켓 + Chart.js)
+html
+복사
+편집
+<!DOCTYPE html>
+<html>
+<head>
+  <title>실시간 IoT 센서 데이터 시각화</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h2>실시간 온도 데이터</h2>
+  <canvas id="tempChart" width="800" height="400"></canvas>
+
+  <script>
+    const ws = new WebSocket('ws://localhost:6789');
+    const ctx = document.getElementById('tempChart').getContext('2d');
+
+    const data = {
+      labels: [],
+      datasets: [{
+        label: 'Temperature',
+        data: [],
+        borderColor: 'rgba(75, 192, 192, 1)',
+        fill: false,
+        tension: 0.1
+      }]
+    };
+
+    const config = {
+      type: 'line',
+      data: data,
+      options: {
+        scales: {
+          x: { type: 'realtime', realtime: { delay: 2000 } },
+          y: { min: 0, max: 100 }
+        },
+        plugins: {
+          legend: { display: true }
+        }
+      }
+    };
+
+    const tempChart = new Chart(ctx, config);
+
+    ws.onmessage = (event) => {
+      const sensorData = JSON.parse(event.data);
+      // 예: {"sensor_id":"S1", "timestamp":"2025-05-15T10:00:00", "temperature":24.5, "humidity":45}
+
+      const time = new Date(sensorData.timestamp);
+      const temp = sensorData.temperature;
+
+      data.labels.push(time.toLocaleTimeString());
+      data.datasets[0].data.push(temp);
+
+      // 데이터 너무 많아지면 오래된 데이터 삭제
+      if (data.labels.length > 50) {
+        data.labels.shift();
+        data.datasets[0].data.shift();
+      }
+      tempChart.update();
+    };
+  </script>
+</body>
+</html>
+4. 요약
+Python Kafka consumer가 실시간 메시지를 받아 웹소켓 클라이언트에 전달
+
+클라이언트가 WebSocket으로 메시지 받고 Chart.js로 실시간 라인 차트 렌더링
+
+간단한 구조라 실제 서비스 적용 시 인증, 에러처리, 성능 튜닝 필요
+
+
+
