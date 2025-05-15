@@ -1,0 +1,289 @@
+딥러닝은 여러 층(layer)의 신경망을 쌓아 복잡한 패턴을 학습하는 머신러닝의 한 분야
+딥러닝 모델 기본 개념
+심층 신경망(Deep Neural Network, DNN): 은닉층이 여러 개인 신경망
+
+주요 구성요소: 입력층 → 여러 은닉층 (Fully connected, Convolutional, LSTM 등) → 출력층
+
+학습방법: 역전파(Backpropagation) + 옵티마이저(Adam, SGD 등)
+
+활성화 함수: ReLU, Sigmoid, Tanh 등 비선형 함수로 표현력 강화
+
+주요 딥러닝 모델 종류
+모델 종류	용도	특징
+DNN (Fully Connected)	일반 분류, 회귀	각 층이 모두 연결된 전통적 신경망
+CNN (Convolutional Neural Network)	이미지, 시계열	합성곱 필터로 공간적 특징 추출
+RNN / LSTM / GRU	시계열, 자연어	순차 데이터 처리, 기억 메커니즘 포함
+Autoencoder	차원 축소, 이상 탐지	입력 복원 목적의 신경망
+GAN (Generative Adversarial Network)	데이터 생성	두 신경망 경쟁 학습
+
+딥러닝 학습 기본 과정
+데이터 준비: 전처리, 정규화, 레이블 분리
+
+모델 구성: 층 쌓기, 활성화 함수 설정
+
+손실함수, 옵티마이저 지정
+
+학습 실행: 에폭(epoch)마다 손실 감소 목표
+
+평가 및 튜닝: 검증 데이터로 정확도 확인 후 조정
+
+간단한 딥러닝 분류 모델 예시 (TensorFlow/Keras)
+python
+복사
+편집
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+model = Sequential([
+    Dense(128, activation='relu', input_shape=(input_dim,)),
+    Dense(64, activation='relu'),
+    Dense(num_classes, activation='softmax')
+])
+
+model.compile(
+    optimizer='adam',
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+model.fit(X_train, y_train, epochs=20, batch_size=32, validation_split=0.2)
+딥러닝 모델 활용 분야
+컴퓨터 비전: 이미지 분류, 객체 탐지, 얼굴 인식
+
+자연어 처리: 번역, 감성 분석, 챗봇
+
+시계열 예측: 수요 예측, 고장 예측
+
+음성 인식: 음성명령 인식, 텍스트 변환
+
+추천 시스템: 개인화 추천
+
+시계열 예측 중 특히 수요 예측과 고장 예측에 특화된 딥러닝 모델과 접근법에 대해 설명할게요.
+
+⏳ 시계열 예측 개념
+시간에 따라 변하는 데이터를 바탕으로 미래 값을 예측
+
+과거 패턴, 계절성, 추세 등을 학습해서 미래 상태를 추론
+
+1. 수요 예측 (Demand Forecasting)
+🔎 주요 특징
+주로 판매량, 에너지 사용량, 제품 수요 등 예측
+
+주기성(요일, 월별), 트렌드 반영 필요
+
+🔧 모델 추천
+LSTM / GRU: 장기 의존성 파악에 강점
+
+1D CNN + LSTM: 공간+시간 패턴 동시 학습 가능
+
+Transformer 기반 모델: 최근 성능 우수
+
+🧱 기본 데이터 준비
+시계열 데이터 + 요일, 공휴일, 프로모션 등 부가 변수 포함
+
+📌 예시
+python
+복사
+편집
+# LSTM 모델 간단 구조 예시
+model = Sequential([
+    LSTM(64, input_shape=(time_steps, features)),
+    Dense(1)
+])
+2. 고장 예측 (Predictive Maintenance)
+🔎 주요 특징
+센서 데이터 기반으로 장비 이상 및 고장 조기 감지
+
+불균형 데이터 문제 많음 (고장 데이터 적음)
+
+실시간 예측과 이상 탐지 병행
+
+🔧 모델 추천
+LSTM: 센서 시계열의 패턴 인식
+
+Autoencoder + LSTM: 정상 데이터 학습 → 복원 오류로 이상 감지
+
+CNN + LSTM: 복합 특징 추출
+
+📌 예시
+python
+복사
+편집
+# 이상 탐지용 LSTM Autoencoder 예시 구조
+inputs = Input(shape=(time_steps, features))
+encoded = LSTM(32, activation='relu', return_sequences=False)(inputs)
+decoded = RepeatVector(time_steps)(encoded)
+decoded = LSTM(features, activation='sigmoid', return_sequences=True)(decoded)
+
+autoencoder = Model(inputs, decoded)
+autoencoder.compile(optimizer='adam', loss='mse')
+💡 추가 팁
+항목	권장 사항
+데이터 전처리	이상치 제거, 스케일링(StandardScaler, MinMaxScaler)
+평가 지표	RMSE, MAE (수요), F1-Score, ROC-AUC (고장)
+불균형 처리	오버샘플링, 가중치 조절, 이상 탐지 접근법
+멀티스텝 예측	미래 n개 시점 예측 시 Sliding Window 적용
+
+실제 수요 데이터를 기반으로 하는 LSTM 예측 모델 코드를 준비해봤어요!
+아래 예시는 시계열 수요 데이터를 **최근 30일치(타임스텝)**를 활용해 다음 날 수요를 예측하는 간단한 LSTM 모델입니다.
+
+1. 필요한 라이브러리
+python
+복사
+편집
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+2. 데이터 준비 및 전처리
+python
+복사
+편집
+# 예시: 날짜별 수요량 CSV 불러오기 (컬럼: 'date', 'demand')
+df = pd.read_csv('demand_data.csv', parse_dates=['date'])
+df = df.sort_values('date')
+
+# 수요량만 추출
+demand = df['demand'].values.reshape(-1, 1)
+
+# 정규화 (MinMaxScaler: 0~1 범위로 변환)
+scaler = MinMaxScaler()
+demand_scaled = scaler.fit_transform(demand)
+3. LSTM 입력 시퀀스 생성 함수
+python
+복사
+편집
+def create_sequences(data, time_steps=30):
+    X, y = [], []
+    for i in range(len(data) - time_steps):
+        X.append(data[i:i+time_steps])
+        y.append(data[i+time_steps])
+    return np.array(X), np.array(y)
+
+time_steps = 30
+X, y = create_sequences(demand_scaled, time_steps)
+4. 학습/테스트 데이터 분할
+python
+복사
+편집
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, shuffle=False)  # 시계열이라 shuffle=False 권장
+5. LSTM 모델 구성 및 학습
+python
+복사
+편집
+model = Sequential([
+    LSTM(50, activation='relu', input_shape=(time_steps, 1)),
+    Dense(1)
+])
+
+model.compile(optimizer='adam', loss='mse')
+model.fit(X_train, y_train, epochs=30, batch_size=32, validation_split=0.2)
+6. 예측 및 결과 역변환
+python
+복사
+편집
+y_pred_scaled = model.predict(X_test)
+y_pred = scaler.inverse_transform(y_pred_scaled)
+y_true = scaler.inverse_transform(y_test)
+
+# 결과 비교 (예: 처음 10개 예측값 출력)
+for i in range(10):
+    print(f'실제: {y_true[i][0]:.2f}, 예측: {y_pred[i][0]:.2f}')
+🔎 추가 팁
+파라미터 조정: LSTM 유닛 수, epoch, batch size 등을 조절해 성능 개선 가능
+
+특징 추가: 요일, 공휴일, 기온 등 외부 변수 추가 시 다변량 시계열 모델로 확장
+
+성능 평가: RMSE, MAE 등 지표로 모델 평가
+
+다변량 수요 예측 코드를 준비해봤어요!
+기본 수요 데이터에 더해 **요일, 공휴일, 기온 등 외부 변수(피처)**를 함께 넣어 예측하는 예시입니다.
+
+1. 데이터 예시 (CSV 컬럼)
+plaintext
+복사
+편집
+date, demand, weekday, holiday, temperature
+2023-01-01, 100, 6, 1, -2.5
+2023-01-02, 110, 0, 0, -1.0
+...
+2. 라이브러리 & 데이터 불러오기
+python
+복사
+편집
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+python
+복사
+편집
+df = pd.read_csv('demand_multivariate.csv', parse_dates=['date'])
+df = df.sort_values('date')
+
+features = ['demand', 'weekday', 'holiday', 'temperature']
+data = df[features].values
+3. 정규화 (피처별 스케일링)
+python
+복사
+편집
+scaler = MinMaxScaler()
+data_scaled = scaler.fit_transform(data)
+4. 시퀀스 생성 함수 (다변량)
+python
+복사
+편집
+def create_multivariate_sequences(data, time_steps=30):
+    X, y = [], []
+    for i in range(len(data) - time_steps):
+        X.append(data[i:i+time_steps])
+        y.append(data[i + time_steps, 0])  # 목표: 다음 날 demand (첫 번째 피처)
+    return np.array(X), np.array(y)
+
+time_steps = 30
+X, y = create_multivariate_sequences(data_scaled, time_steps)
+5. 학습/테스트 분할
+python
+복사
+편집
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, shuffle=False)
+6. LSTM 모델 구성 및 학습
+python
+복사
+편집
+model = Sequential([
+    LSTM(64, activation='relu', input_shape=(time_steps, X.shape[2])),
+    Dense(1)
+])
+
+model.compile(optimizer='adam', loss='mse')
+model.fit(X_train, y_train, epochs=30, batch_size=32, validation_split=0.2)
+7. 예측 및 역변환
+python
+복사
+편집
+y_pred_scaled = model.predict(X_test)
+# y는 demand만 예측해서 역변환할 때는 첫 피처에 맞춰 역변환 필요
+# scaler는 모든 피처 스케일링에 쓰였으므로 demand만 복원 위해 아래 방법 사용
+demand_min = scaler.data_min_[0]
+demand_max = scaler.data_max_[0]
+
+y_pred = y_pred_scaled * (demand_max - demand_min) + demand_min
+y_true = y_test * (demand_max - demand_min) + demand_min
+
+for i in range(10):
+    print(f'실제: {y_true[i]:.2f}, 예측: {y_pred[i][0]:.2f}')
+⚡ 정리
+다변량 입력 → LSTM 입력 shape = (샘플, 타임스텝, 피처 수)
+
+예측 목표는 demand 한 개 변수로 설정
+
+외부 변수(요일, 휴일, 온도 등)로 예측 정확도 개선 가능
+
