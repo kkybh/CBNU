@@ -1,0 +1,203 @@
+기계학습(Machine Learning)”은 **산업 인공지능(Industrial AI)**의 핵심 기술로, 시스템이 데이터로부터 스스로 학습하고 예측하거나 의사결정을 할 수 있도록 만드는 방법
+ 1. 기계학습이란?
+기계학습이란, 사람이 명시적으로 프로그래밍하지 않아도, 컴퓨터가 데이터를 이용해 패턴을 학습하고, 새로운 데이터에 대해 판단할 수 있도록 하는 기술입니다.
+
+예:
+
+사람이 일일이 “불량 제품”을 구분하는 규칙을 정의하지 않아도,
+
+기계가 과거의 데이터를 학습해 자동으로 불량을 판별하도록 할 수 있음.
+
+📂 2. 기계학습의 분류
+구분	설명	예시
+지도 학습 (Supervised Learning)	입력(X)과 정답(Y)을 함께 제공하여 학습	불량 분류, 수요 예측
+비지도 학습 (Unsupervised Learning)	정답 없이 데이터의 구조나 패턴을 학습	군집화, 이상탐지
+강화 학습 (Reinforcement Learning)	행동에 따른 보상을 학습해 최적 행동을 선택	로봇 제어, 공정 최적화
+
+🔍 3. 주요 알고리즘
+📌 지도 학습
+알고리즘	설명	사용 예시
+선형 회귀 (Linear Regression)	연속값 예측	생산량, 에너지 사용량 예측
+로지스틱 회귀 (Logistic Regression)	이진 분류	불량/정상 제품 분류
+의사결정나무 / 랜덤포레스트	규칙 기반의 분류/회귀	고장 진단, 품질 분류
+서포트 벡터 머신 (SVM)	마진 기반의 분류	이미지, 패턴 분류
+인공신경망 (ANN)	비선형 문제 처리	복잡한 예측 문제
+
+📌 비지도 학습
+알고리즘	설명	사용 예시
+K-평균 (K-Means)	군집화	고객, 장비 상태 군집화
+주성분 분석 (PCA)	차원 축소	데이터 시각화, 잡음 제거
+Autoencoder	비선형 차원축소	이상탐지, 데이터 압축
+
+📌 강화 학습
+Q-Learning, Deep Q Network (DQN)
+→ 보상을 최대화하는 의사결정
+예: 설비의 유지보수 시점 최적화, 자율 로봇 제어
+
+🏭 4. 산업 인공지능에서의 적용 예
+산업 분야	기계학습 적용 예시
+제조	불량 판별, 공정 최적화, 수요 예측
+설비 유지보수	고장 예측(Predictive Maintenance), 이상탐지
+물류/창고	수요 예측, 경로 최적화
+에너지	전력 사용량 예측, 효율 최적화
+스마트 팩토리	센서 데이터 기반 판단, 품질 예측
+
+⚙️ 5. 머신러닝 모델 학습 과정
+데이터 수집 – 센서, 로그, ERP, MES 등
+
+전처리 – 결측치 처리, 정규화, 특징 선택
+
+학습/훈련 – 알고리즘을 사용해 모델 생성
+
+검증/평가 – 정확도, 정밀도, 재현율 등 평가 지표 확인
+
+배포/운영 – 실제 환경에 적용
+
+모니터링/재학습 – 성능 유지 및 개선
+
+📈 6. 예제 (Python Scikit-learn)
+간단한 로지스틱 회귀 분류 예:
+
+python
+복사
+편집
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import load_iris
+from sklearn.metrics import accuracy_score
+
+# 데이터 로드
+X, y = load_iris(return_X_y=True)
+
+# 훈련/테스트 분할
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 모델 학습
+model = LogisticRegression(max_iter=200)
+model.fit(X_train, y_train)
+
+# 예측 및 정확도
+predictions = model.predict(X_test)
+print("정확도:", accuracy_score(y_test, predictions))
+🧠 7. 기계학습 vs 전통 프로그래밍
+항목	전통적 프로그래밍	기계학습
+입력	규칙 + 데이터	데이터
+출력	결과	규칙/모델
+특징	규칙 명시 필요	데이터에서 규칙 자동 학습
+
+✅ 요약
+기계학습은 데이터를 기반으로 패턴을 학습해 예측·판단을 수행
+
+지도/비지도/강화학습의 분류가 있으며, 산업 현장에 폭넓게 적용
+
+데이터 전처리, 알고리즘 선택, 모델 평가가 중요
+
+ 예시 프로젝트: 센서 데이터 기반 설비 고장 예측
+🎯 목표:
+센서 데이터(온도, 진동, 압력 등)를 바탕으로 설비의 고장 유무를 예측하는 머신러닝 모델을 개발
+
+📌 1. 데이터 수집
+출처: PLC, SCADA, IoT 센서 등
+
+형태: 시간 순 데이터(Time-series), CSV or 실시간 스트리밍
+
+예시 데이터 컬럼:
+
+시간	온도	진동	압력	습도	고장여부
+12:00	75.2	0.04	3.1	30	0
+12:01	80.5	0.07	3.6	32	1
+
+🧹 2. 데이터 전처리
+python
+복사
+편집
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+
+# 데이터 불러오기
+df = pd.read_csv("sensor_data.csv")
+
+# 결측치 처리
+df = df.dropna()
+
+# 입력/출력 분리
+X = df[["온도", "진동", "압력", "습도"]]
+y = df["고장여부"]
+
+# 정규화 (센서 스케일 차이 보정)
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+📊 3. 데이터 분할
+python
+복사
+편집
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X_scaled, y, test_size=0.2, random_state=42)
+🤖 4. 모델 선택 및 학습
+python
+복사
+편집
+from sklearn.ensemble import RandomForestClassifier
+
+# 랜덤포레스트 분류기 학습
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+🧪 5. 모델 평가
+python
+복사
+편집
+from sklearn.metrics import classification_report, confusion_matrix
+
+y_pred = model.predict(X_test)
+
+print("분류 결과:\n", classification_report(y_test, y_pred))
+print("혼동 행렬:\n", confusion_matrix(y_test, y_pred))
+출력 예:
+
+scss
+복사
+편집
+정밀도(Precision), 재현율(Recall), F1-score 등 확인 가능
+📈 6. 중요 피처 확인 (Feature Importance)
+python
+복사
+편집
+import matplotlib.pyplot as plt
+
+importances = model.feature_importances_
+features = X.columns
+
+plt.barh(features, importances)
+plt.xlabel("중요도")
+plt.title("센서별 중요도")
+plt.show()
+어떤 센서가 고장에 영향을 많이 주는지 시각적으로 확인 가능
+
+🚀 7. 실시간 예측 적용 (운영환경)
+SCADA 또는 MES 시스템에 모델 연동
+
+신규 센서 입력이 들어오면 model.predict()로 실시간 예측
+
+경고 알림, 자동정지 등의 액션과 연결 가능
+
+🧠 전체 구조 요약
+plaintext
+복사
+편집
+[센서 수집] → [전처리] → [모델 학습] → [모델 평가] → [운영 적용]
+    ↑              ↘                       ↘                ↓
+  (실시간/로그)   (정규화, 이상값)    (정확도, ROC-AUC)     (예측/알림)
+✅ 보완 요소 (현장 적용 시 고려)
+항목	설명
+센서 노이즈	필터링 필요 (Moving Avg, Kalman 등)
+불균형 데이터	SMOTE, 언더샘플링 등 적용 가능
+시간적 패턴 반영	시계열 분석 (LSTM, sliding window 등)
+모델 설명성	SHAP, LIME 등으로 추론 설명 가능
+
+🔌 보너스: 공개 센서 데이터셋 추천
+NASA bearing dataset
+
+UCI Gas Sensor Data
+
