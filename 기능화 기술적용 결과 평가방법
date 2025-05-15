@@ -1,0 +1,222 @@
+1. 평가 목적
+정확성: 모델이 문제를 얼마나 잘 해결하는가?
+
+효율성: 자원(시간, 메모리) 대비 성능은 적절한가?
+
+일반화 능력: 새로운 데이터에서도 잘 작동하는가?
+
+비즈니스 효과: 실제 업무에 적용했을 때 효과적인가?
+
+사용자 만족도: 최종 사용자가 만족하는가?
+
+2. 평가 지표 (기술적 관점)
+분류 문제
+정확도(Accuracy)
+
+정밀도(Precision), 재현율(Recall), F1-score
+
+ROC-AUC (Receiver Operating Characteristic - Area Under Curve)
+
+회귀 문제
+평균제곱오차(MSE), 평균절대오차(MAE)
+
+결정계수(R²)
+
+이상 탐지
+탐지율 (Recall), 오탐율 (False Positive Rate)
+
+정밀도, F1-score
+
+군집화
+실루엣 점수(Silhouette Score)
+
+던 지수(Dunn Index)
+
+클러스터 내 분산 및 클러스터 간 거리
+
+3. 평가 방법론
+교차 검증(Cross-validation): 데이터셋을 여러 번 나누어 평가의 신뢰성 확보
+
+테스트셋 평가: 학습에 사용하지 않은 별도의 데이터로 최종 성능 확인
+
+실시간/온라인 평가: 배포 후 운영 데이터로 지속 모니터링
+
+A/B 테스트: 두 가지 모델이나 시스템 버전을 비교하여 사용자 반응 및 성과 측정
+
+사용자 피드백: 설문조사, 인터뷰 등 정성적 평가
+
+4. 비기술적 평가
+ROI(투자대비효과): 기술 적용으로 인한 비용 절감, 매출 증가 등
+
+운영 편의성: 유지보수, 확장성, 자동화 수준
+
+보안 및 윤리성: 개인정보 보호, 편향성 여부 점검
+
+평가 지표별 구체 계산법이나 코드 예시
+1. 분류 문제
+(1) 정확도(Accuracy)
+전체 샘플 중 맞게 예측한 비율
+
+accuracy_score
+
+python
+복사
+편집
+from sklearn.metrics import accuracy_score
+
+y_true = [0, 1, 1, 0, 1]
+y_pred = [0, 0, 1, 0, 1]
+
+acc = accuracy_score(y_true, y_pred)
+print("Accuracy:", acc)
+(2) 정밀도(Precision), 재현율(Recall), F1-score
+Precision = TP / (TP + FP)
+
+Recall = TP / (TP + FN)
+
+F1-score = 2 * (Precision * Recall) / (Precision + Recall)
+
+python
+복사
+편집
+from sklearn.metrics import precision_score, recall_score, f1_score
+
+precision = precision_score(y_true, y_pred)
+recall = recall_score(y_true, y_pred)
+f1 = f1_score(y_true, y_pred)
+
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-score:", f1)
+(3) ROC-AUC
+ROC 곡선 아래 면적, 1에 가까울수록 좋음
+
+python
+복사
+편집
+from sklearn.metrics import roc_auc_score
+
+y_true = [0, 1, 1, 0, 1]
+y_scores = [0.1, 0.4, 0.35, 0.8, 0.7]  # 예측 확률
+
+auc = roc_auc_score(y_true, y_scores)
+print("ROC AUC:", auc)
+2. 회귀 문제
+(1) 평균제곱오차 (MSE)
+python
+복사
+편집
+from sklearn.metrics import mean_squared_error
+
+y_true = [3.0, -0.5, 2.0, 7.0]
+y_pred = [2.5, 0.0, 2.1, 7.8]
+
+mse = mean_squared_error(y_true, y_pred)
+print("MSE:", mse)
+(2) 평균절대오차 (MAE)
+python
+복사
+편집
+from sklearn.metrics import mean_absolute_error
+
+mae = mean_absolute_error(y_true, y_pred)
+print("MAE:", mae)
+(3) 결정계수 (R²)
+python
+복사
+편집
+from sklearn.metrics import r2_score
+
+r2 = r2_score(y_true, y_pred)
+print("R2:", r2)
+3. 군집화 평가 (실루엣 점수)
+클러스터링 품질 지표, 1에 가까울수록 좋음
+
+python
+복사
+편집
+from sklearn.metrics import silhouette_score
+from sklearn.cluster import KMeans
+import numpy as np
+
+X = np.array([[1,2], [1,4], [1,0],
+              [10,2], [10,4], [10,0]])
+
+kmeans = KMeans(n_clusters=2, random_state=42)
+labels = kmeans.fit_predict(X)
+
+score = silhouette_score(X, labels)
+print("Silhouette Score:", score)
+
+이상 탐지, 다중 클래스 분류, 불균형 데이터 평가 지표
+1. 이상 탐지 평가 지표
+이상 탐지는 주로 불균형 데이터이고, 다음 지표가 중요합니다.
+
+지표	설명	계산법/예시 코드
+정밀도 (Precision)	탐지한 이상 중 실제 이상 비율	precision_score
+재현율 (Recall)	실제 이상 중 탐지한 비율	recall_score
+F1-score	Precision과 Recall의 조화평균	f1_score
+False Positive Rate (FPR)	정상인데 이상으로 잘못 탐지한 비율	수동 계산 필요
+
+python
+복사
+편집
+from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
+
+y_true = [0, 0, 1, 0, 1, 1, 0]  # 1: 이상, 0: 정상
+y_pred = [0, 1, 1, 0, 0, 1, 0]
+
+precision = precision_score(y_true, y_pred)
+recall = recall_score(y_true, y_pred)
+f1 = f1_score(y_true, y_pred)
+
+tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+fpr = fp / (fp + tn)
+
+print(f"Precision: {precision}")
+print(f"Recall: {recall}")
+print(f"F1-score: {f1}")
+print(f"False Positive Rate: {fpr}")
+2. 다중 클래스 분류 평가 지표
+다중 클래스는 각 클래스별, 전체 평균 지표 산출이 중요합니다.
+
+python
+복사
+편집
+from sklearn.metrics import classification_report
+
+y_true = [0, 1, 2, 1, 0, 2]
+y_pred = [0, 2, 1, 1, 0, 2]
+
+print(classification_report(y_true, y_pred, digits=4))
+classification_report는 클래스별 Precision, Recall, F1-score, Support 출력
+
+average 파라미터로 macro, micro, weighted 평균 계산 가능
+
+3. 불균형 데이터 평가 지표
+정확도는 편향될 수 있으니 정밀도/재현율, F1-score, ROC-AUC, **PR AUC (Precision-Recall Area Under Curve)**가 중요
+
+PR AUC는 희소한 이상 탐지 문제에 특히 유용
+
+python
+복사
+편집
+from sklearn.metrics import precision_recall_curve, auc
+import matplotlib.pyplot as plt
+
+y_true = [0, 0, 1, 1, 0, 1, 0, 0, 1, 0]
+y_scores = [0.1, 0.4, 0.35, 0.8, 0.2, 0.9, 0.05, 0.1, 0.7, 0.2]
+
+precision, recall, thresholds = precision_recall_curve(y_true, y_scores)
+pr_auc = auc(recall, precision)
+
+plt.plot(recall, precision, label=f'PR curve (area = {pr_auc:.4f})')
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.title('Precision-Recall Curve')
+plt.legend()
+plt.show()
+
+
+
+
